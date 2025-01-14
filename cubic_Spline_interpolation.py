@@ -106,10 +106,9 @@ def gauss_seidel(A, b, X0=None, TOL=0.00001, N=200, verbose=True):
 
     Notes:
         - The Gauss-Seidel method updates each component of the solution vector
-          immediately after it is computed, unlike the Jacobi method, which updates
-          all components simultaneously at the end of each iteration.
+          immediately after it is computed.
         - The convergence of the method is guaranteed if the coefficient matrix `A` is
-          strictly diagonally dominant or symmetric positive definite.
+          strictly diagonally dominant.
         - The norm of the difference between successive approximations is used
           as the convergence criterion.
         - If the matrix `A` is not diagonally dominant, the method may still converge
