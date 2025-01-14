@@ -112,7 +112,7 @@ def gauss_seidel(A, b, X0=None, TOL=0.00001, N=200, verbose=True):
 
         X0 = x.copy()
 
-    print("Maximum number of iterations exceeded, Matrix is not converging")
+    print(bcolors.WARNING, "Maximum number of iterations exceeded, Matrix is not converging", bcolors.ENDC)
     raise ConvergenceError("Gauss-Seidel method failed to converge within the maximum number of iterations.")
 
 
@@ -197,7 +197,7 @@ def cubic_spline(xList, yList, x, f_tag0, f_tagN):
     return s_natural, s_full
 
 
-# Input data
+#main
 x_list = [0, PI/6, PI/4, PI/2]  # Known x-values
 y_list = [0, 0.5, 0.7072, 1]  # Corresponding y-values
 x = PI/3                   # The x-value to interpolate

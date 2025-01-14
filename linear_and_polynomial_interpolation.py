@@ -112,24 +112,25 @@ def gauss_seidel(A, b, X0=None, TOL=0.00001, N=200, verbose=True):
 
         X0 = x.copy()
 
-    print("Maximum number of iterations exceeded, Matrix is not converging")
+    print(bcolors.WARNING ,"Maximum number of iterations exceeded, Matrix is not converging", bcolors.ENDC)
     raise ConvergenceError("Gauss-Seidel method failed to converge within the maximum number of iterations.")
 
 def linear_interpolation(xList, yList, point):
     result = 0
     if x in xList:
-        print(bcolors.OKGREEN ,f"\nPoint is in the data, p({x}) = {yList[xList.index(x)]}", bcolors.ENDC)
-        return
+        print(bcolors.OKGREEN, f"\nPoint is in the data", bcolors.ENDC)
+        return yList[xList.index(x)]
 
     for i in range(len(xList) - 1):
         if xList[i] <= point <= xList[i + 1]:
             x1, x2 = xList[i], xList[i + 1]
             y1, y2 = yList[i], yList[i + 1]
             result = (((y1 - y2) / (x1 - x2)) * point) + ((y2 * x1) - (y1 * x2)) / (x1 - x2)
-            print(bcolors.OKGREEN ,f"\nThe approximate (interpolation) of the point p({x}) = {result}", bcolors.ENDC)
-    if result == 0:
+    if result != 0:
+        return result
+    else:
         print (bcolors.FAIL, f"\nError: x = {x} is outside the range of the given data points.", bcolors.ENDC)
-        return
+        return None
 
 def polynomialInterpolation(xList, yList, x):
     """
@@ -149,12 +150,12 @@ def polynomialInterpolation(xList, yList, x):
     # Step 1: Check if x is in xList
     if x in xList:
         print(bcolors.OKGREEN ,f"\nPoint is in the data, p({x}) = {yList[xList.index(x)]}", bcolors.ENDC)
-        return
+        return yList[xList.index(x)]
 
     # Step 2: Check if x is within range
     if x < min(xList) or x > max(xList):
         print(bcolors.WARNING ,f"\nError: x = {x} is outside the interpolation range [{min(xList)}, {max(xList)}].", bcolors.ENDC)
-        return
+        return None
 
     # Step 3: Construct the matrix
     A = [[xi**j for j in range(n)] for xi in xList]
@@ -166,19 +167,19 @@ def polynomialInterpolation(xList, yList, x):
     try:
         coefficients = gauss_seidel(A, b)
     except ConvergenceError as e:
-        print("Error in solving system:", e)
-        return
+        print(bcolors.FAIL ,"Error in solving system:", e, bcolors.ENDC)
+        return None
 
     # Step 6: Compute p(x) using the polynomial
     px = sum(coefficients[i] * (x**i) for i in range(n))
 
-    # Step 7: Print the result
-    print(f"The approximate (interpolation) of the point p({x}) = {px}")
+    # Step 7: return the result
+    return px
 
 #main
 xList = [1, 2, 3]
 yList = [0.8415, 0.9093, 0.1411]
-x = 2
+x = 2.5
 print(bcolors.OKBLUE, "==================== Linear / Polynomial Interpolation Methods ====================\n", bcolors.ENDC)
 while True:
     print("Please choose the method you want to use:")
@@ -196,10 +197,13 @@ print("=========================================================================
 
 if choice == 1:
     print(bcolors.OKBLUE, "You have chosen the Linear Method.", bcolors.ENDC)
-    linear_interpolation(xList, yList, x)
-    print(bcolors.OKBLUE, "\n---------------------------------------------------------------------------\n",bcolors.ENDC)
-
+    result = linear_interpolation(xList, yList, x)
+    if result is not None:
+        print(bcolors.OKGREEN, f"\nThe approximate (interpolation) of the point p({x}) = {result}", bcolors.ENDC)
 else:
     print(bcolors.OKBLUE, "You have chosen the Polynomial Method.", bcolors.ENDC)
-    polynomialInterpolation(xList, yList, x)
-    print(bcolors.OKBLUE, "\n---------------------------------------------------------------------------\n",bcolors.ENDC)
+    result = polynomialInterpolation(xList, yList, x)
+    if result is not None:
+        print(bcolors.OKGREEN, f"\nThe approximate (interpolation) of the point p({x}) = {result}", bcolors.ENDC)
+
+print(bcolors.OKBLUE, "\n---------------------------------------------------------------------------\n",bcolors.ENDC)

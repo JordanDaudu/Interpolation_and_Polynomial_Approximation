@@ -82,6 +82,7 @@ def neville_interpolation(xList, yList, x):
     # final result
     return P[0][n - 1]
 
+#main
 xList = [1, 2, 4]
 yList = [1, 0, 1.5]
 x = 3
@@ -103,9 +104,9 @@ if choice == 1:
     print(bcolors.OKBLUE, "You have chosen the Lagrange Method.", bcolors.ENDC)
     result = lagrange_interpolation(xList, yList, x)
     if result is not None:
-        print(bcolors.OKGREEN ,f"\nLagrange Interpolation: p({x}) = {result}", bcolors.ENDC)
+        print(bcolors.OKGREEN ,f"\nLagrange Interpolation: p(x = {x}) = {result}", bcolors.ENDC)
 else:
     print(bcolors.OKBLUE, "You have chosen the Neville Method.", bcolors.ENDC)
     result = neville_interpolation(xList, yList, x)
     if result is not None:
-        print(bcolors.OKGREEN ,f"\nNeville Interpolation: p({x}) = {result}", bcolors.ENDC)
+        print(bcolors.OKGREEN ,f"\nNeville Interpolation: p(x = {x}) = {result}", bcolors.ENDC)
