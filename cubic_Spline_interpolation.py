@@ -24,14 +24,18 @@ def norm(vector):
 
 def print_iteration_header(A, verbose=True):
     """
-    Prints the header for the iteration table, and checks if matrix is diagonal matrix.
+    Prints the header for the iteration table and checks if the matrix is diagonally dominant.
+
+    Parameters:
+        A (list of lists): Coefficient matrix.
+        verbose (bool): If True, prints additional diagnostic information.
     """
     n = len(A)
 
     if is_diagonally_dominant(A) and verbose:
         print(bcolors.ORANGE ,"Matrix is diagonally dominant.", bcolors.ENDC)
     if not is_diagonally_dominant(A):
-        print(bcolors.ORANGE ,"Matrix is not diagonally dominant. Attempting to modify the matrix...", bcolors.END)
+        print(bcolors.ORANGE ,"Matrix is not diagonally dominant. Attempting to modify the matrix...", bcolors.ENDC)
         A = make_diagonally_dominant(A)
         if is_diagonally_dominant(A) and verbose:
             print(bcolors.ORANGE ,"Matrix modified to be diagonally dominant:\n", A, bcolors.ENDC)
@@ -41,7 +45,15 @@ def print_iteration_header(A, verbose=True):
         print("--------------------------------------------------------------------------------")
 
 def is_diagonally_dominant(A):
-    """Check if a matrix is diagonally dominant."""
+    """
+    Checks if a matrix is diagonally dominant.
+
+    Parameters:
+        A (list of lists): The matrix to check.
+
+    Returns:
+        bool: True if the matrix is diagonally dominant, False otherwise.
+    """
     for i in range(len(A)):
         row_sum = sum(abs(A[i][j]) for j in range(len(A)) if j != i)
         if abs(A[i][i]) < row_sum:
@@ -53,10 +65,10 @@ def make_diagonally_dominant(A):
     Modifies the matrix A to make it diagonally dominant by swapping rows if necessary.
 
     Parameters:
-        A: The coefficient matrix to be modified.
+        A (list of lists): The coefficient matrix to be modified.
 
     Returns:
-        The modified matrix that is diagonally dominant (if possible).
+        list of lists: The modified matrix that is diagonally dominant (if possible).
     """
     n = len(A)
 
@@ -76,18 +88,33 @@ def make_diagonally_dominant(A):
 
 def gauss_seidel(A, b, X0=None, TOL=0.00001, N=200, verbose=True):
     """
-    Performs Gauss-Seidel iterations to solve Ax = b.
+    Performs Gauss-Seidel iterations to solve the system of linear equations Ax = b.
 
     Parameters:
-        A: Coefficient matrix (list of lists).
-        b: Solution vector (list).
-        X0: Initial guess for the solution. Defaults to a zero vector.
-        TOL: Tolerance for convergence. Defaults to 1e-16.
-        N: Maximum number of iterations. Defaults to 200.
-        verbose: If True, prints iteration details.
+        A (list of lists): Coefficient matrix of size n x n.
+        b (list): Solution vector size n.
+        X0 (list, optional): Initial guess for the solution. Defaults to a zero vector.
+        TOL (float, optional): Tolerance for convergence. Defaults to 0.00001.
+        N (int, optional): Maximum number of iterations. Defaults to 200.
+        verbose (bool, optional): If True, prints iteration details. Defaults to True.
 
     Returns:
-        Approximate solution vector.
+        list: Approximate solution vector.
+
+    Raises:
+        ConvergenceError: If the method fails to converge within the maximum number of iterations.
+
+    Notes:
+        - The Gauss-Seidel method updates each component of the solution vector
+          immediately after it is computed, unlike the Jacobi method, which updates
+          all components simultaneously at the end of each iteration.
+        - The convergence of the method is guaranteed if the coefficient matrix `A` is
+          strictly diagonally dominant or symmetric positive definite.
+        - The norm of the difference between successive approximations is used
+          as the convergence criterion.
+        - If the matrix `A` is not diagonally dominant, the method may still converge
+          in some cases, but this is not guaranteed. A warning will be displayed if
+          convergence occurs despite the lack of diagonal dominance.
     """
     n = len(A)
     if X0 is None:
@@ -118,6 +145,34 @@ def gauss_seidel(A, b, X0=None, TOL=0.00001, N=200, verbose=True):
 
 
 def cubic_spline(xList, yList, x, f_tag0, f_tagN):
+    """
+    Computes the cubic spline interpolation for a given set of data points.
+
+    The function calculates both natural and full cubic spline interpolations
+    at a given point `x`. Natural spline interpolation assumes the second
+    derivative at the endpoints is zero, while the full spline uses provided
+    derivative values (`f_tag0` and `f_tagN`) at the endpoints.
+
+    Parameters:
+        xList (list): List of x-coordinates of the data points.
+        yList (list): List of y-coordinates corresponding to `xList`.
+        x (float): The x-coordinate where the spline is evaluated.
+        f_tag0 (float): First derivative of the function at the start of the interval.
+        f_tagN (float): First derivative of the function at the end of the interval.
+
+    Returns:
+        tuple:
+            - s_natural (float): The interpolated value using the natural spline.
+            - s_full (float or None): The interpolated value using the full spline
+              (or None if `f_tag0` and `f_tagN` are not provided).
+
+    Notes:
+        - If `x` is outside the range of `xList`, an error message is displayed,
+          and the function returns `(None, None)`.
+        - The Gauss-Seidel method is used to solve the system of linear equations
+          for spline coefficients. If this method fails to converge, appropriate
+          warnings are shown.
+    """
     if x in xList:
         print(bcolors.OKGREEN ,f"\nPoint is in the data", bcolors.ENDC)
         print(bcolors.OKGREEN,f"x = {x}: y = {yList[xList.index(x)]}", bcolors.ENDC)

@@ -14,15 +14,19 @@ class bcolors:
 
 def lagrange_interpolation(xList, yList, x):
     """
-    Lagrange Interpolation
+    Evaluate the interpolated polynomial using Lagrange Interpolation.
 
     Parameters:
-    xList (list): List of x-values for data points.
-    yList (list): List of y-values for data points.
-    x (float): The x-value where you want to evaluate the interpolated polynomial.
+        xList (list): List of distinct x-values for the data points.
+        yList (list): List of corresponding y-values for the data points.
+        x (float): The x-value where the polynomial is to be evaluated.
 
     Returns:
-    float: The interpolated y-value at the given x.
+        float: The interpolated y-value at x.
+        None: If x is outside the interpolation range.
+    Notes:
+        - If x is one of the x-values in the data, the corresponding y-value is returned.
+        - If x is outside the interpolation range, an error message is printed and None is returned.
     """
     if x in xList:
         print(bcolors.OKGREEN ,f"\nPoint is in the data", bcolors.ENDC)
@@ -45,6 +49,22 @@ def lagrange_interpolation(xList, yList, x):
     return result
 
 def neville_interpolation(xList, yList, x):
+    """
+    Evaluate the interpolated polynomial using Neville's Method.
+
+    Parameters:
+        xList (list): List of distinct x-values for the data points.
+        yList (list): List of corresponding y-values for the data points.
+        x (float): The x-value where the polynomial is to be evaluated.
+
+    Returns:
+        float: The interpolated y-value at x.
+        None: If x is outside the interpolation range.
+    Notes:
+        - If x is one of the x-values in the data, the corresponding y-value is returned.
+        - If x is outside the interpolation range, an error message is printed and None is returned.
+        - Intermediate polynomials are printed to show the step-by-step calculation.
+    """
     if x in xList:
         print(bcolors.OKGREEN, f"\nPoint is in the data", bcolors.ENDC)
         return yList[xList.index(x)]
