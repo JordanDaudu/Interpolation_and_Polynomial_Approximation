@@ -22,34 +22,36 @@ def norm(vector):
     """Computes the infinity norm of a vector."""
     return max(abs(v) for v in vector)
 
-def print_iteration_header(A, verbose=True):
+def print_iteration_header(A, b, verbose=True):
     """
     Prints the header for the iteration table and checks if the matrix is diagonally dominant.
 
     Parameters:
         A (list of lists): Coefficient matrix.
+        b (list): Solution vector.
         verbose (bool): If True, prints additional diagnostic information.
     """
     n = len(A)
 
-    if is_diagonally_dominant(A) and verbose:
+    if is_diagonally_dominant(A, b) and verbose:
         print(bcolors.ORANGE ,"Matrix is diagonally dominant.", bcolors.ENDC)
-    if not is_diagonally_dominant(A):
+    if not is_diagonally_dominant(A, b):
         print(bcolors.ORANGE ,"Matrix is not diagonally dominant. Attempting to modify the matrix...", bcolors.ENDC)
-        A = make_diagonally_dominant(A)
-        if is_diagonally_dominant(A) and verbose:
+        A = make_diagonally_dominant(A, b)
+        if is_diagonally_dominant(A, b) and verbose:
             print(bcolors.ORANGE ,"Matrix modified to be diagonally dominant:\n", A, bcolors.ENDC)
 
     if verbose:
         print("Iteration" + "\t\t\t".join([" {:>12}".format(f"x{i + 1}") for i in range(n)]))
         print("--------------------------------------------------------------------------------")
 
-def is_diagonally_dominant(A):
+def is_diagonally_dominant(A, b):
     """
     Checks if a matrix is diagonally dominant.
 
     Parameters:
         A (list of lists): The matrix to check.
+        b (list): The solution vector.
 
     Returns:
         bool: True if the matrix is diagonally dominant, False otherwise.
@@ -60,31 +62,32 @@ def is_diagonally_dominant(A):
             return False
     return True
 
-def make_diagonally_dominant(A):
+def make_diagonally_dominant(matrix, vector):
     """
-    Modifies the matrix A to make it diagonally dominant by swapping rows if necessary.
-
-    Parameters:
-        A (list of lists): The coefficient matrix to be modified.
-
-    Returns:
-        list of lists: The modified matrix that is diagonally dominant (if possible).
+    Function for replacing rows with both a matrix and a vector
+    :param matrix: Matrix nxn
+    :param vector: Vector n
+    :return: Replace rows after a pivoting process
     """
-    n = len(A)
 
-    for i in range(n):
-        if abs(A[i][i]) < sum(abs(A[i][j]) for j in range(n) if j != i):
-            # Find a row with a larger diagonal element
-            for j in range(i + 1, n):
-                if abs(A[j][i]) > abs(A[i][i]):
-                    # Swap row i and row j
-                    A[i], A[j] = A[j], A[i]
-                    break
-            # After attempting to swap, if no dominant diagonal is found, print a warning
-            if abs(A[i][i]) < sum(abs(A[i][j]) for j in range(n) if j != i):
-                print(bcolors.WARNING ,f"Warning: Row {i} still not diagonally dominant after attempting row swaps.", bcolors.ENDC)
+    n = len(matrix)
+    for i in range(len(matrix)):
+        max = abs(matrix[i][i])
+        for j in range(i, len(matrix)):
+            # The pivot member is the maximum in each column
+            if abs(matrix[j][i]) > max:
+                temp = matrix[j]
+                temp_b = vector[j]
+                matrix[j] = matrix[i]
+                vector[j] = vector[i]
+                matrix[i] = temp
+                vector[i] = temp_b
+                max = abs(matrix[i][i])
+        # After attempting to swap, if no dominant diagonal is found, print a warning
+        if abs(matrix[i][i]) < sum(abs(matrix[i][j]) for j in range(n) if j != i):
+            print(bcolors.WARNING ,f"Warning: Row {i} still not diagonally dominant after attempting row swaps.", bcolors.ENDC)
 
-    return A
+    return matrix, vector
 
 def gauss_seidel(A, b, X0=None, TOL=0.00001, N=200, verbose=True):
     """
@@ -119,7 +122,7 @@ def gauss_seidel(A, b, X0=None, TOL=0.00001, N=200, verbose=True):
     if X0 is None:
         X0 = [0.0] * n
 
-    print_iteration_header(A, verbose)
+    print_iteration_header(A, b, verbose)
 
     for k in range(1, N + 1):
         x = X0.copy()
@@ -132,7 +135,7 @@ def gauss_seidel(A, b, X0=None, TOL=0.00001, N=200, verbose=True):
             print(f"{k:<15}" + "\t\t".join(f"{val:<15.10f}" for val in x))
 
         if norm([x[i] - X0[i] for i in range(n)]) < TOL:
-            if not is_diagonally_dominant(A):
+            if not is_diagonally_dominant(A, b):
                 print(bcolors.OKCYAN ,"\n|Warning: Matrix is not diagonally dominant, but the solution is within tolerance and converged.|", bcolors.ENDC)
             return x
 

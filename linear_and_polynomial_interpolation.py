@@ -1,3 +1,4 @@
+import numpy as np
 # colors for the output
 class bcolors:
     HEADER = '\033[95m'
@@ -14,132 +15,274 @@ class bcolors:
     GRAY = '\033[38;5;243m'
 PI = 3.141592653589793
 
-class ConvergenceError(Exception):
-    """Exception for handling non-convergence in iterative methods."""
-    pass
-
-def norm(vector):
-    """Computes the infinity norm of a vector."""
-    return max(abs(v) for v in vector)
-
-def print_iteration_header(A, verbose=True):
+def MaxNorm(matrix):
     """
-    Prints the header for the iteration table and checks if the matrix is diagonally dominant.
-
-    Parameters:
-        A (list of lists): Coefficient matrix.
-        verbose (bool): If True, prints additional diagnostic information.
+    Function for calculating the max-norm of a matrix
+    :param matrix: matrix nxn
+    :return:max-norm of a matrix
     """
-    n = len(A)
+    max_norm = 0
+    for i in range(len(matrix)):
+        norm = 0
+        for j in range(len(matrix)):
+            # Sum of organs per line with absolute value
+            norm += abs(matrix[i][j])
+        # Maximum row amount
+        if norm > max_norm:
+            max_norm = norm
 
-    if is_diagonally_dominant(A) and verbose:
-        print(bcolors.ORANGE ,"Matrix is diagonally dominant.", bcolors.ENDC)
-    if not is_diagonally_dominant(A):
-        print(bcolors.ORANGE ,"Matrix is not diagonally dominant. Attempting to modify the matrix...", bcolors.ENDC)
-        A = make_diagonally_dominant(A)
-        if is_diagonally_dominant(A) and verbose:
-            print(bcolors.ORANGE ,"Matrix modified to be diagonally dominant:\n", A, bcolors.ENDC)
+    return max_norm
 
-    if verbose:
-        print("Iteration" + "\t\t\t".join([" {:>12}".format(f"x{i + 1}") for i in range(n)]))
-        print("--------------------------------------------------------------------------------")
-
-def is_diagonally_dominant(A):
+def Determinant(matrix, mul):
     """
-    Checks if a matrix is diagonally dominant.
-
-    Parameters:
-        A (list of lists): The matrix to check.
-
-    Returns:
-        bool: True if the matrix is diagonally dominant, False otherwise.
+    Recursive function for determinant calculation
+    :param matrix: Matrix nxn
+    :param mul: The double number
+    :return: determinant of matrix
     """
-    for i in range(len(A)):
-        row_sum = sum(abs(A[i][j]) for j in range(len(A)) if j != i)
-        if abs(A[i][i]) < row_sum:
-            return False
-    return True
+    width = len(matrix)
+    # Stop Conditions
+    if width == 1:
+        return mul * matrix[0][0]
+    else:
+        sign = -1
+        det = 0
+        for i in range(width):
+            m = []
+            for j in range(1, width):
+                buff = []
+                for k in range(width):
+                    if k != i:
+                        buff.append(matrix[j][k])
+                m.append(buff)
+            # Change the sign of the multiply number
+            sign *= -1
+            #  Recursive call for determinant calculation
+            det = det + mul * Determinant(m, sign * matrix[0][i])
+    return det
 
-def make_diagonally_dominant(A):
+def MakeIMatrix(cols, rows):
+    """"Initialize a identity matrix"""
+    return [[1 if x == y else 0 for y in range(cols)] for x in range(rows)]
+
+def MulMatrixVector(InversedMat, b_vector):
     """
-    Modifies the matrix A to make it diagonally dominant by swapping rows if necessary.
-
-    Parameters:
-        A (list of lists): The coefficient matrix to be modified.
-
-    Returns:
-        list of lists: The modified matrix that is diagonally dominant (if possible).
+    Function for multiplying a vector matrix
+    :param InversedMat: Matrix nxn
+    :param b_vector: Vector n
+    :return: Result vector
     """
-    n = len(A)
+    result = []
+    # Initialize the x vector
+    for i in range(len(b_vector)):
+        result.append([])
+        result[i].append(0)
+    # Multiplication of inverse matrix in the result vector
+    for i in range(len(InversedMat)):
+        for k in range(len(b_vector)):
+            result[i][0] += InversedMat[i][k] * b_vector[k]
+    return result
 
-    for i in range(n):
-        if abs(A[i][i]) < sum(abs(A[i][j]) for j in range(n) if j != i):
-            # Find a row with a larger diagonal element
-            for j in range(i + 1, n):
-                if abs(A[j][i]) > abs(A[i][i]):
-                    # Swap row i and row j
-                    A[i], A[j] = A[j], A[i]
-                    break
-            # After attempting to swap, if no dominant diagonal is found, print a warning
-            if abs(A[i][i]) < sum(abs(A[i][j]) for j in range(n) if j != i):
-                print(bcolors.WARNING ,f"Warning: Row {i} still not diagonally dominant after attempting row swaps.", bcolors.ENDC)
-
-    return A
-
-def gauss_seidel(A, b, X0=None, TOL=0.00001, N=100, verbose=True):
+def MultiplyMatrix(matrixA, matrixB):
     """
-    Performs Gauss-Seidel iterations to solve the system of linear equations Ax = b.
-
-    Parameters:
-        A (list of lists): Coefficient matrix of size n x n.
-        b (list): Solution vector size n.
-        X0 (list, optional): Initial guess for the solution. Defaults to a zero vector.
-        TOL (float, optional): Tolerance for convergence. Defaults to 0.00001.
-        N (int, optional): Maximum number of iterations. Defaults to 200.
-        verbose (bool, optional): If True, prints iteration details. Defaults to True.
-
-    Returns:
-        list: Approximate solution vector.
-
-    Raises:
-        ConvergenceError: If the method fails to converge within the maximum number of iterations.
-
-    Notes:
-        - The Gauss-Seidel method updates each component of the solution vector
-          immediately after it is computed.
-        - The convergence of the method is guaranteed if the coefficient matrix `A` is
-          strictly diagonally dominant.
-        - The norm of the difference between successive approximations is used
-          as the convergence criterion.
-        - If the matrix `A` is not diagonally dominant, the method may still converge
-          in some cases, but this is not guaranteed. A warning will be displayed if
-          convergence occurs despite the lack of diagonal dominance.
+    Function for multiplying 2 matrices
+    :param matrixA: Matrix nxn
+    :param matrixB: Matrix nxn
+    :return: Multiplication between 2 matrices
     """
-    n = len(A)
-    if X0 is None:
-        X0 = [0.0] * n
+    # result matrix initialized as singularity matrix
+    result = [[0 for y in range(len(matrixB[0]))] for x in range(len(matrixA))]
+    for i in range(len(matrixA)):
+        # iterate through columns of Y
+        for j in range(len(matrixB[0])):
+            # iterate through rows of Y
+            for k in range(len(matrixB)):
+                result[i][j] += matrixA[i][k] * matrixB[k][j]
+    return result
 
-    print_iteration_header(A, verbose)
+def InverseMatrix(matrix,vector):
+    """
+    Function for calculating an inverse matrix
+    :param matrix:  Matrix nxn
+    :return: Inverse matrix
+    """
+    if Determinant(matrix, 1) == 0:
+        print("Error,Singular Matrix\n")
+        return
+    # result matrix initialized as singularity matrix
+    result = MakeIMatrix(len(matrix), len(matrix))
+    # loop for each row
+    for i in range(len(matrix[0])):
+        # turn the pivot into 1 (make elementary matrix and multiply with the result matrix )
+        # pivoting process
+        matrix, vector = RowXchange(matrix, vector)
+        elementary = MakeIMatrix(len(matrix[0]), len(matrix))
+        elementary[i][i] = 1/matrix[i][i]
+        result = MultiplyMatrix(elementary, result)
+        matrix = MultiplyMatrix(elementary, matrix)
+        # make elementary loop to iterate for each row and subtracrt the number below (specific) pivot to zero  (make
+        # elementary matrix and multiply with the result matrix )
+        for j in range(i+1, len(matrix)):
+            elementary = MakeIMatrix(len(matrix[0]), len(matrix))
+            elementary[j][i] = -(matrix[j][i])
+            matrix = MultiplyMatrix(elementary, matrix)
+            result = MultiplyMatrix(elementary, result)
 
-    for k in range(1, N + 1):
-        x = X0.copy()
-        for i in range(n):
-            sigma1 = sum(A[i][j] * x[j] for j in range(i))
-            sigma2 = sum(A[i][j] * X0[j] for j in range(i + 1, n))
-            x[i] = (b[i] - sigma1 - sigma2) / A[i][i]
 
-        if verbose:
-            print(f"{k:<15}" + "\t\t".join(f"{val:<15.10f}" for val in x))
+    # after finishing with the lower part of the matrix subtract the numbers above the pivot with elementary for loop
+    # (make elementary matrix and multiply with the result matrix )
+    for i in range(len(matrix[0])-1, 0, -1):
+        for j in range(i-1, -1, -1):
+            elementary = MakeIMatrix(len(matrix[0]), len(matrix))
+            elementary[j][i] = -(matrix[j][i])
+            matrix = MultiplyMatrix(elementary, matrix)
+            result = MultiplyMatrix(elementary, result)
 
-        if norm([x[i] - X0[i] for i in range(n)]) < TOL:
-            if not is_diagonally_dominant(A):
-                print(bcolors.OKCYAN ,"\n|Warning: Matrix is not diagonally dominant, but the solution is within tolerance and converged.|", bcolors.ENDC)
-            return x
+    return result
 
-        X0 = x.copy()
+def Cond(matrix, invert):
+    """
+    :param matrix: Matrix nxn
+    :param invert: Inverted matrix
+    :return: CondA = ||A|| * ||A(-1)||
+    """
+    print("|| A ||max = ", MaxNorm(matrix))
+    print("|| A(-1) ||max = ", MaxNorm(invert))
+    return MaxNorm(matrix)*MaxNorm(invert)
 
-    print(bcolors.WARNING ,"Maximum number of iterations exceeded, Matrix is not converging", bcolors.ENDC)
-    raise ConvergenceError("Gauss-Seidel method failed to converge within the maximum number of iterations.")
+def RowXchageZero(matrix,vector):
+    """
+    Function for replacing rows with both a matrix and a vector
+    :param matrix: Matrix nxn
+    :param vector: Vector n
+    :return: Replace rows after a pivoting process
+    """
+
+    for i in range(len(matrix)):
+        for j in range(i, len(matrix)):
+            # The pivot member is not zero
+            if matrix[i][i] == 0:
+                temp = matrix[j]
+                temp_b = vector[j]
+                matrix[j] = matrix[i]
+                vector[j] = vector[i]
+                matrix[i] = temp
+                vector[i] = temp_b
+
+    return [matrix, vector]
+
+def RowXchange(matrix, vector):
+    """
+    Function for replacing rows with both a matrix and a vector
+    :param matrix: Matrix nxn
+    :param vector: Vector n
+    :return: Replace rows after a pivoting process
+    """
+
+    n = len(matrix)
+    for i in range(len(matrix)):
+        max = abs(matrix[i][i])
+        for j in range(i, len(matrix)):
+            # The pivot member is the maximum in each column
+            if abs(matrix[j][i]) > max:
+                temp = matrix[j]
+                temp_b = vector[j]
+                matrix[j] = matrix[i]
+                vector[j] = vector[i]
+                matrix[i] = temp
+                vector[i] = temp_b
+                max = abs(matrix[i][i])
+
+    return [matrix, vector]
+
+
+def GaussJordanElimination(matrix, vector):
+    """
+    Function for solving a linear equation using gauss's elimination method
+    :param matrix: Matrix nxn
+    :param vector: Vector n
+    :return: Solve Ax=b -> x=A(-1)b
+    """
+    # Pivoting process
+    matrix, vector = RowXchange(matrix, vector)
+    # Inverse matrix calculation
+    invert = InverseMatrix(matrix, vector)
+    return MulMatrixVector(invert, vector)
+
+
+def UMatrix(matrix,vector):
+    """
+    :param matrix: Matrix nxn
+    :return:Disassembly into a  U matrix
+    """
+    # result matrix initialized as singularity matrix
+    U = MakeIMatrix(len(matrix), len(matrix))
+    # loop for each row
+    for i in range(len(matrix[0])):
+        # pivoting process
+        matrix, vector = RowXchageZero(matrix, vector)
+        for j in range(i + 1, len(matrix)):
+            elementary = MakeIMatrix(len(matrix[0]), len(matrix))
+            # Finding the M(ij) to reset the organs under the pivot
+            elementary[j][i] = -(matrix[j][i])/matrix[i][i]
+            matrix = MultiplyMatrix(elementary, matrix)
+    # U matrix is a doubling of elementary matrices that we used to reset organs under the pivot
+    U = MultiplyMatrix(U, matrix)
+    return U
+
+
+def LMatrix(matrix, vector):
+    """
+       :param matrix: Matrix nxn
+       :return:Disassembly into a  L matrix
+       """
+    # Initialize the result matrix
+    L = MakeIMatrix(len(matrix), len(matrix))
+    # loop for each row
+    for i in range(len(matrix[0])):
+        # pivoting process
+        matrix, vector = RowXchageZero(matrix, vector)
+        for j in range(i + 1, len(matrix)):
+            elementary = MakeIMatrix(len(matrix[0]), len(matrix))
+            # Finding the M(ij) to reset the organs under the pivot
+            elementary[j][i] = -(matrix[j][i])/matrix[i][i]
+            # L matrix is a doubling of inverse elementary matrices
+            L[j][i] = (matrix[j][i]) / matrix[i][i]
+            matrix = MultiplyMatrix(elementary, matrix)
+
+    return L
+
+
+def SolveLU(matrix, vector):
+    """
+    Function for deconstructing a linear equation by ungrouping LU
+    :param matrix: Matrix nxn
+    :param vector: Vector n
+    :return: Solve Ax=b -> x=U(-1)L(-1)b
+    """
+    matrixU = UMatrix(matrix)
+    matrixL = LMatrix(matrix)
+    return MultiplyMatrix(InverseMatrix(matrixU), MultiplyMatrix(InverseMatrix(matrixL), vector))
+
+def solveMatrix(matrixA,vectorb):
+    detA = Determinant(matrixA, 1)
+    print(bcolors.GOLD, "\nDET(A) = ", detA)
+    if detA != 0:
+        print("CondA = ", Cond(matrixA, InverseMatrix(matrixA, vectorb)), bcolors.ENDC)
+        print(bcolors.OKBLUE, "\nnon-Singular Matrix - Perform GaussJordanElimination",bcolors.ENDC)
+        result = GaussJordanElimination(matrixA, vectorb)
+        print(np.array(result))
+        return result
+    else:
+        print("Singular Matrix - Perform LU Decomposition\n")
+        print("Matrix U: \n")
+        print(np.array(UMatrix(matrixA, vectorb)))
+        print("\nMatrix L: \n")
+        print(np.array(LMatrix(matrixA, vectorb)))
+        print("\nMatrix A=LU: \n")
+        result = MultiplyMatrix(LMatrix(matrixA, vectorb), UMatrix(matrixA, vectorb))
+        print(np.array(result))
+        return result
 
 def linear_interpolation(xList, yList, point):
     """
@@ -192,9 +335,8 @@ def polynomialInterpolation(xList, yList, x):
         None: If x is outside the interpolation range or if the system does not converge.
     Notes:
         - The function constructs a system of linear equations to solve for the coefficients
-          of the polynomial using the Gauss-Seidel method.
+          of the polynomial using the Gauss-Jordan Elimination method (or LU decomposition).
         - The function returns None if the x-value is outside the interpolation range.
-        - If the Gauss-Seidel method fails to converge, a ConvergenceError is raised.
     """
     n = len(xList)
 
@@ -214,18 +356,15 @@ def polynomialInterpolation(xList, yList, x):
     # Step 4: Initialize the solution vector b
     b = yList[:]
 
-    # Step 5: Solve for coefficients using Gauss-Seidel
-    try:
-        coefficients = gauss_seidel(A, b)
-    except ConvergenceError as e:
-        print(bcolors.FAIL ,"Error in solving system:", e, bcolors.ENDC)
-        return None
+    # Step 5: Solve for coefficients using Gauss-Jordan Elimination or LU Decomposition
+    matrixSol = solveMatrix(A, b)
 
-    # Step 6: Compute p(x) using the polynomial
-    px = sum(coefficients[i] * (x**i) for i in range(n))
+    # Step 6: Compute result using the polynomial
+    result = sum([matrixSol[i][0] * (x ** i) for i in range(len(matrixSol))])
 
     # Step 7: return the result
-    return px
+    return result
+
 
 #main
 xList = [1, 2, 3]
