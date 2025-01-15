@@ -33,25 +33,24 @@ def print_iteration_header(A, b, verbose=True):
     """
     n = len(A)
 
-    if is_diagonally_dominant(A, b) and verbose:
+    if is_diagonally_dominant(A) and verbose:
         print(bcolors.ORANGE ,"Matrix is diagonally dominant.", bcolors.ENDC)
-    if not is_diagonally_dominant(A, b):
+    if not is_diagonally_dominant(A):
         print(bcolors.ORANGE ,"Matrix is not diagonally dominant. Attempting to modify the matrix...", bcolors.ENDC)
-        A = make_diagonally_dominant(A, b)
-        if is_diagonally_dominant(A, b) and verbose:
+        A, b = make_diagonally_dominant(A, b)
+        if is_diagonally_dominant(A) and verbose:
             print(bcolors.ORANGE ,"Matrix modified to be diagonally dominant:\n", A, bcolors.ENDC)
 
     if verbose:
         print("Iteration" + "\t\t\t".join([" {:>12}".format(f"x{i + 1}") for i in range(n)]))
         print("--------------------------------------------------------------------------------")
 
-def is_diagonally_dominant(A, b):
+def is_diagonally_dominant(A):
     """
     Checks if a matrix is diagonally dominant.
 
     Parameters:
         A (list of lists): The matrix to check.
-        b (list): The solution vector.
 
     Returns:
         bool: True if the matrix is diagonally dominant, False otherwise.
@@ -62,32 +61,33 @@ def is_diagonally_dominant(A, b):
             return False
     return True
 
-def make_diagonally_dominant(matrix, vector):
+def make_diagonally_dominant(A, b):
     """
-    Function for replacing rows with both a matrix and a vector
-    :param matrix: Matrix nxn
-    :param vector: Vector n
-    :return: Replace rows after a pivoting process
+    Modifies the matrix A to make it diagonally dominant by swapping rows if necessary.
+    Also swaps vector b accordingly.
+
+    Parameters:
+        A (list of lists): The coefficient matrix to be modified.
+        b (list): The vector corresponding to the right-hand side of the equations.
+
+    Returns:
+        tuple: The modified matrix A and the modified vector b that are diagonally dominant (if possible).
     """
+    n = len(A)
+    for i in range(n):
+        if abs(A[i][i]) < sum(abs(A[i][j]) for j in range(n) if j != i):
+            # Find a row with a larger diagonal element
+            for j in range(i + 1, n):
+                if abs(A[j][i]) > abs(A[i][i]):
+                    # Swap row i and row j in both matrix A and vector b
+                    A[i], A[j] = A[j], A[i]
+                    b[i], b[j] = b[j], b[i]
+                    break
+            # After attempting to swap, if no dominant diagonal is found, print a warning
+            if abs(A[i][i]) < sum(abs(A[i][j]) for j in range(n) if j != i):
+                print(f"Warning: Row {i} still not diagonally dominant after attempting row swaps.")
 
-    n = len(matrix)
-    for i in range(len(matrix)):
-        max = abs(matrix[i][i])
-        for j in range(i, len(matrix)):
-            # The pivot member is the maximum in each column
-            if abs(matrix[j][i]) > max:
-                temp = matrix[j]
-                temp_b = vector[j]
-                matrix[j] = matrix[i]
-                vector[j] = vector[i]
-                matrix[i] = temp
-                vector[i] = temp_b
-                max = abs(matrix[i][i])
-        # After attempting to swap, if no dominant diagonal is found, print a warning
-        if abs(matrix[i][i]) < sum(abs(matrix[i][j]) for j in range(n) if j != i):
-            print(bcolors.WARNING ,f"Warning: Row {i} still not diagonally dominant after attempting row swaps.", bcolors.ENDC)
-
-    return matrix, vector
+    return A, b
 
 def gauss_seidel(A, b, X0=None, TOL=0.00001, N=200, verbose=True):
     """
@@ -135,7 +135,7 @@ def gauss_seidel(A, b, X0=None, TOL=0.00001, N=200, verbose=True):
             print(f"{k:<15}" + "\t\t".join(f"{val:<15.10f}" for val in x))
 
         if norm([x[i] - X0[i] for i in range(n)]) < TOL:
-            if not is_diagonally_dominant(A, b):
+            if not is_diagonally_dominant(A):
                 print(bcolors.OKCYAN ,"\n|Warning: Matrix is not diagonally dominant, but the solution is within tolerance and converged.|", bcolors.ENDC)
             return x
 
@@ -213,7 +213,7 @@ def cubic_spline(xList, yList, x, f_tag0, f_tagN):
     # Solve the linear system for M (natural spline)
     try:
         print(bcolors.OKCYAN ,"Solving for the natural spline...", bcolors.ENDC)
-        M_natural = gauss_seidel(A, b, X0=[0.0] * n, verbose=True)
+        M_natural = gauss_seidel(A, b, verbose=True)
     except ConvergenceError as e:
         print("Gauss-Seidel failed to converge for the natural spline system:", e)
         return None, None
@@ -234,7 +234,7 @@ def cubic_spline(xList, yList, x, f_tag0, f_tagN):
 
         try:
             print(bcolors.OKCYAN, "\n Solving for the full spline...", bcolors.ENDC)
-            M_full = gauss_seidel(A, b, X0=[0.0] * n, verbose=True)
+            M_full = gauss_seidel(A, b, verbose=True)
         except ConvergenceError as e:
             print("Gauss-Seidel failed to converge for the full spline system:", e)
             return s_natural, None
@@ -257,7 +257,10 @@ def cubic_spline(xList, yList, x, f_tag0, f_tagN):
 #main
 x_list = [0, PI/6, PI/4, PI/2]  # Known x-values
 y_list = [0, 0.5, 0.7072, 1]  # Corresponding y-values
+#x_list = [1, 22, 4]  # Known x-values
+#y_list = [1, 0, 1.5]  # Corresponding y-values
 x = PI/3                   # The x-value to interpolate
+#x = 2.5
 f_tag0 = 1                # First derivative at the start
 f_tagN = 0              # First derivative at the end
 
