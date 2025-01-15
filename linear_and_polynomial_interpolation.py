@@ -171,7 +171,7 @@ def linear_interpolation(xList, yList, point):
         if xList[i] <= point <= xList[i + 1]:
             x1, x2 = xList[i], xList[i + 1]
             y1, y2 = yList[i], yList[i + 1]
-            result = (((y1 - y2) / (x1 - x2)) * point) + ((y2 * x1) - (y1 * x2)) / (x1 - x2)
+            result = (((y1 - y2) / (x1 - x2)) * point) + (((y2 * x1) - (y1 * x2)) / (x1 - x2))
     if result != 0:
         return result
     else:

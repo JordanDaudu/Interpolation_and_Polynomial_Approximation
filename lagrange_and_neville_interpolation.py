@@ -103,9 +103,13 @@ def neville_interpolation(xList, yList, x):
     return P[0][n - 1]
 
 #main
-xList = [1, 2, 4]
-yList = [1, 0, 1.5]
-x = 3
+xList = [1, 1.2, 1.3,1.4]
+yList = [0, 0.112463, 0.167996, 0.222709]
+x = 1.28
+
+# xList = [1, 2, 4]
+# yList = [1, 0, 1.5]
+# x = 3
 print(bcolors.OKBLUE, "==================== Lagrange / Neville Interpolation Methods ====================\n", bcolors.ENDC)
 while True:
     print("Please choose the method you want to use:")
