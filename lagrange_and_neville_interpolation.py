@@ -101,7 +101,7 @@ def neville_interpolation(xList, yList, x):
 #main
 xList = [1, 1.2, 1.3,1.4]
 yList = [0, 0.112463, 0.167996, 0.222709]
-x = 1.28
+x = 1.25
 
 # xList = [1, 2, 4]
 # yList = [1, 0, 1.5]
