@@ -146,8 +146,8 @@ def Cond(matrix, invert):
     :param invert: Inverted matrix
     :return: CondA = ||A|| * ||A(-1)||
     """
-    print("|| A ||max = ", MaxNorm(matrix))
-    print("|| A(-1) ||max = ", MaxNorm(invert))
+    print("|| A || max = ", MaxNorm(matrix))
+    print("|| A(-1) || max = ", MaxNorm(invert))
     return MaxNorm(matrix)*MaxNorm(invert)
 
 def RowXchageZero(matrix,vector):
@@ -213,7 +213,7 @@ def GaussJordanElimination(matrix, vector):
 def UMatrix(matrix,vector):
     """
     :param matrix: Matrix nxn
-    :return:Disassembly into a  U matrix
+    :return:Disassembly into a U matrix
     """
     # result matrix initialized as singularity matrix
     U = MakeIMatrix(len(matrix), len(matrix))
@@ -361,6 +361,9 @@ def polynomialInterpolation(xList, yList, x):
 
     # Step 6: Compute result using the polynomial
     result = sum([matrixSol[i][0] * (x ** i) for i in range(len(matrixSol))])
+    print(f"{bcolors.OKBLUE}\nThe polynomial:{bcolors.ENDC}")
+    print(f"P(X) = {' + '.join([f'({matrixSol[i][0]}) * x^{i}' for i in range(len(matrixSol))])}")
+    print(f"{bcolors.OKGREEN}\nThe result of P(X={x}) is:{bcolors.ENDC}")
 
     # Step 7: return the result
     return result

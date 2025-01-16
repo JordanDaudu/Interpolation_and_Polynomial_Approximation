@@ -257,10 +257,7 @@ def cubic_spline(xList, yList, x, f_tag0, f_tagN):
 #main
 x_list = [0, PI/6, PI/4, PI/2]  # Known x-values
 y_list = [0, 0.5, 0.7072, 1]  # Corresponding y-values
-#x_list = [1, 22, 4]  # Known x-values
-#y_list = [1, 0, 1.5]  # Corresponding y-values
 x = PI/3                   # The x-value to interpolate
-#x = 2.5
 f_tag0 = 1                # First derivative at the start
 f_tagN = 0              # First derivative at the end
 
@@ -272,3 +269,5 @@ s_natural, s_full = cubic_spline(x_list, y_list, x, f_tag0, f_tagN)
 if s_natural and s_full is not None:
     print(bcolors.OKBLUE, f"\nNatural Spline result at x = {x}:", bcolors.OKGREEN, f"y = {s_natural}", bcolors.ENDC)
     print(bcolors.OKBLUE ,f"\nFull Spline result at x = {x}:", bcolors.OKGREEN, f"y = {s_full}", bcolors.ENDC)
+
+print(bcolors.OKBLUE, "\n---------------------------------------------------------------------------\n",bcolors.ENDC)

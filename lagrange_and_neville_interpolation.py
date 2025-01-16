@@ -75,10 +75,6 @@ def neville_interpolation(xList, yList, x):
         return None
 
     n = len(xList)
-    if not (xList[0] <= x <= xList[-1]):
-        print("x is not in the interpolation range")
-        return None
-
     P = [[0 for _ in range(n)] for _ in range(n)]
 
     # Initialize the diagonal with the y values
@@ -134,3 +130,5 @@ else:
     result = neville_interpolation(xList, yList, x)
     if result is not None:
         print(bcolors.OKGREEN ,f"\nNeville Interpolation: p(x = {x}) = {result}", bcolors.ENDC)
+
+print(bcolors.OKBLUE, "\n---------------------------------------------------------------------------\n",bcolors.ENDC)
