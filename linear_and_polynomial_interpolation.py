@@ -18,8 +18,8 @@ PI = 3.141592653589793
 def MaxNorm(matrix):
     """
     Function for calculating the max-norm of a matrix
-    :param matrix: matrix nxn
-    :return:max-norm of a matrix
+    :param matrix: A square matrix (list of lists).
+    :return: The maximum norm value of the matrix.
     """
     max_norm = 0
     for i in range(len(matrix)):
@@ -35,10 +35,11 @@ def MaxNorm(matrix):
 
 def Determinant(matrix, mul):
     """
-    Recursive function for determinant calculation
-    :param matrix: Matrix nxn
-    :param mul: The double number
-    :return: determinant of matrix
+    Calculate the determinant of a square matrix using recursion.
+
+    :param matrix: A square nxn matrix (list of lists).
+    :param mul: A multiplier to track recursive contributions.
+    :return: The determinant value of the matrix.
     """
     width = len(matrix)
     # Stop Conditions
@@ -65,30 +66,30 @@ def MakeIMatrix(cols, rows):
     """"Initialize a identity matrix"""
     return [[1 if x == y else 0 for y in range(cols)] for x in range(rows)]
 
-def MulMatrixVector(InversedMat, b_vector):
+def MulMatrixVector(matrix, b_vector):
     """
     Function for multiplying a vector matrix
-    :param InversedMat: Matrix nxn
+    :param matrix: Matrix nxn
     :param b_vector: Vector n
     :return: Result vector
     """
-    result = []
-    # Initialize the x vector
-    for i in range(len(b_vector)):
-        result.append([])
-        result[i].append(0)
-    # Multiplication of inverse matrix in the result vector
-    for i in range(len(InversedMat)):
-        for k in range(len(b_vector)):
-            result[i][0] += InversedMat[i][k] * b_vector[k]
+    n = len(matrix)
+    result = [0] * n  # Initialize result vector with zeros
+
+    for i in range(n):
+        for j in range(len(b_vector)):
+            result[i] += matrix[i][j] * b_vector[j]
+
     return result
+    # return np.dot(matrix, b_vector) this is what it does
 
 def MultiplyMatrix(matrixA, matrixB):
     """
-    Function for multiplying 2 matrices
-    :param matrixA: Matrix nxn
-    :param matrixB: Matrix nxn
-    :return: Multiplication between 2 matrices
+    Multiply two square matrices together.
+
+    :param matrixA: First square matrix.
+    :param matrixB: Second square matrix.
+    :return: The resulting matrix after multiplication.
     """
     # result matrix initialized as singularity matrix
     result = [[0 for y in range(len(matrixB[0]))] for x in range(len(matrixA))]
@@ -99,46 +100,20 @@ def MultiplyMatrix(matrixA, matrixB):
             for k in range(len(matrixB)):
                 result[i][j] += matrixA[i][k] * matrixB[k][j]
     return result
+    # return np.dot(matrixA, matrixB) this is what it does
 
 def InverseMatrix(matrix,vector):
     """
-    Function for calculating an inverse matrix
-    :param matrix:  Matrix nxn
-    :return: Inverse matrix
+    Compute the inverse of a square matrix.
+
+    :param matrix: A square matrix.
+    :param vector: A vector (not used in computation).
+    :return: The inverse of the matrix if invertible, otherwise None.
     """
     if Determinant(matrix, 1) == 0:
         print("Error,Singular Matrix\n")
         return
-    # result matrix initialized as singularity matrix
-    result = MakeIMatrix(len(matrix), len(matrix))
-    # loop for each row
-    for i in range(len(matrix[0])):
-        # turn the pivot into 1 (make elementary matrix and multiply with the result matrix )
-        # pivoting process
-        matrix, vector = RowXchange(matrix, vector)
-        elementary = MakeIMatrix(len(matrix[0]), len(matrix))
-        elementary[i][i] = 1/matrix[i][i]
-        result = MultiplyMatrix(elementary, result)
-        matrix = MultiplyMatrix(elementary, matrix)
-        # make elementary loop to iterate for each row and subtracrt the number below (specific) pivot to zero  (make
-        # elementary matrix and multiply with the result matrix )
-        for j in range(i+1, len(matrix)):
-            elementary = MakeIMatrix(len(matrix[0]), len(matrix))
-            elementary[j][i] = -(matrix[j][i])
-            matrix = MultiplyMatrix(elementary, matrix)
-            result = MultiplyMatrix(elementary, result)
-
-
-    # after finishing with the lower part of the matrix subtract the numbers above the pivot with elementary for loop
-    # (make elementary matrix and multiply with the result matrix )
-    for i in range(len(matrix[0])-1, 0, -1):
-        for j in range(i-1, -1, -1):
-            elementary = MakeIMatrix(len(matrix[0]), len(matrix))
-            elementary[j][i] = -(matrix[j][i])
-            matrix = MultiplyMatrix(elementary, matrix)
-            result = MultiplyMatrix(elementary, result)
-
-    return result
+    return np.linalg.inv(matrix)
 
 def Cond(matrix, invert):
     """
@@ -173,32 +148,26 @@ def RowXchageZero(matrix,vector):
 
 def RowXchange(matrix, vector):
     """
-    Function for replacing rows with both a matrix and a vector
-    :param matrix: Matrix nxn
-    :param vector: Vector n
-    :return: Replace rows after a pivoting process
+    Perform row swapping to ensure numerical stability during pivoting.
+
+    :param matrix: A square matrix nxn.
+    :param vector: A corresponding vector n.
+    :return: Modified matrix and vector after row swapping.
     """
 
     n = len(matrix)
-    for i in range(len(matrix)):
-        max = abs(matrix[i][i])
-        for j in range(i, len(matrix)):
-            # The pivot member is the maximum in each column
-            if abs(matrix[j][i]) > max:
-                temp = matrix[j]
-                temp_b = vector[j]
-                matrix[j] = matrix[i]
-                vector[j] = vector[i]
-                matrix[i] = temp
-                vector[i] = temp_b
-                max = abs(matrix[i][i])
 
-    return [matrix, vector]
+    for i in range(n):
+        max_row = max(range(i, n), key=lambda r: abs(matrix[r][i]))
+        if i != max_row:
+            matrix[i], matrix[max_row] = matrix[max_row], matrix[i]
+            vector[i], vector[max_row] = vector[max_row], vector[i]
+    return matrix, vector
 
 
 def GaussJordanElimination(matrix, vector):
     """
-    Function for solving a linear equation using gauss's elimination method
+    Function for solving a linear equation using Gauss-Jordan elimination method
     :param matrix: Matrix nxn
     :param vector: Vector n
     :return: Solve Ax=b -> x=A(-1)b
@@ -206,7 +175,8 @@ def GaussJordanElimination(matrix, vector):
     # Pivoting process
     matrix, vector = RowXchange(matrix, vector)
     # Inverse matrix calculation
-    invert = InverseMatrix(matrix, vector)
+    #invert = InverseMatrix(matrix, vector)
+    invert = np.linalg.inv(matrix)
     return MulMatrixVector(invert, vector)
 
 
@@ -265,6 +235,13 @@ def SolveLU(matrix, vector):
     return MultiplyMatrix(InverseMatrix(matrixU), MultiplyMatrix(InverseMatrix(matrixL), vector))
 
 def solveMatrix(matrixA,vectorb):
+    """
+    Solve a system of linear equations using different methods based on matrix properties.
+
+    :param matrixA: Coefficient matrix.
+    :param vectorb: Result vector.
+    :return: Solution vector.
+    """
     detA = Determinant(matrixA, 1)
     print(bcolors.GOLD, "\nDET(A) = ", detA)
     if detA != 0:
@@ -356,23 +333,27 @@ def polynomialInterpolation(xList, yList, x):
     # Step 4: Initialize the solution vector b
     b = yList[:]
 
+    # print the matrix A and vector b
+    print(bcolors.OKBLUE, "\nMatrix from the points: \n", bcolors.ENDC)
+    print(np.array(A))
+    print(bcolors.OKBLUE ,"\nVector b:", bcolors.ENDC, b, "\n")
+
     # Step 5: Solve for coefficients using Gauss-Jordan Elimination or LU Decomposition
     matrixSol = solveMatrix(A, b)
 
     # Step 6: Compute result using the polynomial
-    result = sum([matrixSol[i][0] * (x ** i) for i in range(len(matrixSol))])
+    result = sum([matrixSol[i] * (x ** i) for i in range(n)])
     print(f"{bcolors.OKBLUE}\nThe polynomial:{bcolors.ENDC}")
-    print(f"P(X) = {' + '.join([f'({matrixSol[i][0]}) * x^{i}' for i in range(len(matrixSol))])}")
-    print(f"{bcolors.OKGREEN}\nThe result of P(X={x}) is:{bcolors.ENDC}")
+    print(f"P(X) = {' + '.join([f'({matrixSol[i]}) * x^{i}' for i in range(len(matrixSol))])}")
 
     # Step 7: return the result
     return result
 
 
 #main
-xList = [1, 2, 3]
-yList = [0.8415, 0.9093, 0.1411]
-x = 2.5
+xList = [0, 1, 2, 3]  # Known x-values
+yList = [0, 0.8415, 0.9093, 0.1411]  # Corresponding y-values
+x = 2.5 # Point to interpolate
 print(bcolors.OKBLUE, "==================== Linear / Polynomial Interpolation Methods ====================\n", bcolors.ENDC)
 while True:
     print("Please choose the method you want to use:")
@@ -397,6 +378,6 @@ else:
     print(bcolors.OKBLUE, "You have chosen the Polynomial Method.", bcolors.ENDC)
     result = polynomialInterpolation(xList, yList, x)
     if result is not None:
-        print(bcolors.OKGREEN, f"\nThe approximate (interpolation) of the point p({x}) = {result}", bcolors.ENDC)
+        print(bcolors.OKGREEN, f"\nThe approximate (interpolation) of the point P({x}) = {result}", bcolors.ENDC)
 
 print(bcolors.OKBLUE, "\n---------------------------------------------------------------------------\n",bcolors.ENDC)
